@@ -10,6 +10,11 @@ pipeline{
                 git credentialsId: '4bcf1f8c-736b-4f3b-9af5-20179d1ae59f', url: 'https://github.com/bhanuprasadmarisetty/myweb.git'
             }
         }
+        stage('Setup') {
+            steps {
+                sh 'chmod +x /root/apache-maven-3.9.8/bin/mvn'
+            }
+        }
         stage("Maven Build"){
             steps{
                 sh "mvn clean package"
