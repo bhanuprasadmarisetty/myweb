@@ -19,7 +19,7 @@ pipeline{
         stage("deploy-dev"){
             steps{
                 sshagent(['03e4871b-cdcd-4ab5-85bd-731a71278e43']) {
-                sh "scp project4/target/myweb.war ec2-user@54.89.27.225:/root/apache-tomcat-9.0.90/myweb"
+                sh "scp project4/target/myweb.war ubuntu@54.89.27.225:/root/apache-tomcat-9.0.90/myweb"
             }
     }
 }
