@@ -1,16 +1,19 @@
 pipeline{
     agent any
+    
+    environment{
+        PATH = "/opt/apache-maven-3.9.8/bin:$PATH" 
+    }
     stages{
-        stage("GIT checkout"){
+        stage("Git Checkout"){
             steps{
-                git credentialsId: '4bcf1f8c-736b-4f3b-9af5-20179d1ae59f', url: 'https://github.com/bhanuprasadmarisetty/myweb.git'   
+                git credentialsId: '4bcf1f8c-736b-4f3b-9af5-20179d1ae59f', url: 'https://github.com/bhanuprasadmarisetty/myweb.git'
             }
         }
         stage("Maven Build"){
             steps{
-                sh "mvn clean package"
-                sh "mv target/*.war target/myweb.war"
+                sh "mvn clean install"
             }
-         }
+        }
     }
 }
