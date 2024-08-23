@@ -1,32 +1,25 @@
 node{
-    def buildNumber = BUILD_NUMBER
-   
-    stage('Git Clone'){
-       
-        git url: 'https://github.com/bhanuprasadmarisetty/myweb.git',branch: 'master'
+    def buildNumber=BUILD_NUMBER
+    stage("Git Clone"){
+        git url: "https://github.com/bhanuprasadmarisetty/myweb.git",branch: "master"
     }
-   
     stage("Maven Clean Package"){
         def mavenHome= tool name: "Maven",type: "maven"
-         sh "${mavenHome}/bin/mvn clean package"
+        sh "${mavenHome}/bin/mvn clean package"
     }
-   
     stage("Build Docker Image"){
-       
        sh "docker build -t bhanu022/dev:${buildNumber} ."
     }
-    stage("DOcker login and Push"){
+    stage("Docker login and Push"){
         sh "docker login -u bhanu022 -p Bhanu@123 "
     }
-   
-        sh "docker push bhanu022/dev:${buildNumber}"
-       
+    sh "docker push bhanu022/dev:${buildNumber}"
     stage("Deploy app as docker container in docker deplo srever"){
        
-        sshagent(['NewDocker']) {
-            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.23.41 docker rm -f myweb-docker || true"
+        sshagent(['Docker_dev_server_ssh']) {
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.23.41 docker rm -f myweb-docker || true"
            
-            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.23.41 docker run -d -p 8080:8080 --name myweb-docker bhanu022/dev:${buildNumber} "
-        }
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.23.41 docker run -d -p 8080:8080 --name myweb-docker bhanu022/dev:${buildNumber}"
+    }
     }  
 }
