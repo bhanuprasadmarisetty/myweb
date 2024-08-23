@@ -14,7 +14,7 @@ node{
         sh "docker login -u bhanu022 -p Bhanu@123 "
     }
     sh "docker push bhanu022/dev:${buildNumber}"
-    stage("Deploy app as docker container in docker deplo srever"){
+    stage("Deploy app as docker container in docker deploy srever"){
        
         sshagent(['Docker_dev_server_ssh']) {
             sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.23.41 docker rm -f myweb-docker || true"
