@@ -1,59 +1,32 @@
-pipeline{
-    agent any
-     tools {
-        maven 'Maven-3.6.1'
+node{
+    def buildNumber = BUILD_NUMBER
+   
+    stage('Git Clone'){
+       
+        git url: 'https://github.com/bhanuprasadmarisetty/myweb.git',branch: 'master'
     }
-    
-    environment{
-        PATH = "/opt/maven3/bin:$PATH"
+   
+    stage("Maven Clean Package"){
+        def mavenHome= tool name: "Maven",type: "maven"
+         sh "${mavenHome}/bin/mvn clean package"
     }
-    stages{
-        stage("Git Checkout"){
-            steps{
-                git credentialsId: 'javahome2', url: 'https://github.com/srinivas1987devops/myweb.git'
-            }
-        }
-        stage("Maven Build"){
-            steps{
-                sh "mvn clean sonar:sonar package"
-                
-            }
-        }
-        stage('Upload War To Nexus'){
-            steps{
-                  nexusArtifactUploader artifacts: [
-                       [
-                            artifactId: 'myweb', 
-                            classifier: '', 
-                            file: "target/myweb-8.2.0.war", 
-                            type: 'war'
-                       ]
-                  ], 
-                  credentialsId: 'nexus3', 
-                  groupId: 'in.javahome', 
-                  nexusUrl: '172.31.36.181:8081', 
-                  nexusVersion: 'nexus3', 
-                  protocol: 'http', 
-                  repository: 'sample-releases', 
-                  version: '8.2.0'  
-              }
-            }
-        stage('Build Docker Image'){
-            steps{
-                 sh 'docker build -t deepikac2021/spring-boot-mongo .'
-                 sh 'docker build -t tomcat:${BUILD_NUMBER} .'
-                 sh 'docker run -itd --name srini36 -p 2900:8080 tomcat:${BUILD_NUMBER}'
-             }
-         }
-        stage('Push Docker Image'){
-             steps{
-                  withCredentials([string(credentialsId: 'DOCKER_HUB_CREDENTIALS', variable: 'DOCKER_HUB_CREDENTIALS')]) {
-                      sh "docker login -u deepikac2021 -p ${DOCKER_HUB_CREDENTIALS}"
-            }
-            sh 'docker push deepikac2021/spring-boot-mongo'
-        }
-      }
-        
-        
+   
+    stage("Build Docker Image"){
+       
+       sh "docker build -t bhanu022/dev:${buildNumber} ."
     }
+    stage("DOcker login and Push"){
+        sh "docker login -u bhanu022 -p Bhanu@123 "
+    }
+   
+        sh "docker push bhanu022/dev:${buildNumber}"
+       
+    stage("Deploy app as docker container in docker deplo srever"){
+       
+        sshagent(['NewDocker']) {
+            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.23.41 docker rm -f myweb-docker || true"
+           
+            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.23.41 docker run -d -p 8080:8080 --name myweb-docker bhanu022/dev:${buildNumber} "
+        }
+    }  
 }
